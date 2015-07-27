@@ -2,7 +2,7 @@
 """Calculate the complete dependencies tree
 
 """
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import argparse
 import codecs
@@ -15,12 +15,12 @@ __author__ = 'Matthieu Gallet'
 
 class DepTree(object):
     def __init__(self, recursive=False, installed_packages=None):
-        self.downloaded_packages = {}
+        self.dependencies_by_package = {}
         self.recursive = recursive
         self.installed_packages = installed_packages or {}
 
     def add(self, file_or_package_name):
-        if file_or_package_name in self.downloaded_packages:
+        if file_or_package_name in self.dependencies_by_package:
             return
         if not file_or_package_name.endswith('.deb'):
             previous_content = set(os.listdir('.'))
@@ -35,14 +35,18 @@ class DepTree(object):
         control_data = get_control_data(file_or_package_name)
         package_name = control_data['Package']
         package_depends = control_data['Depends']
-        self.downloaded_packages[package_name] = parse_deps(package_depends)
+        self.dependencies_by_package[package_name] = parse_deps(package_depends)
         if self.recursive:
-            for other_package_name, version_constraints in self.downloaded_packages[package_name].items():
+            for other_package_name, version_constraints in self.dependencies_by_package[package_name].items():
+                is_installed = False
                 if other_package_name in self.installed_packages:
                     installed_version = self.installed_packages[other_package_name]
                     is_installed = True
                     for version_constraint in version_constraints:
-                        check_version_constraint(installed_version)
+                        if not check_version_constraint(installed_version, version_constraint[0], version_constraint[1]):
+                            is_installed = False
+                if not is_installed:
+                    self.add(other_package_name)
 
 
 def main():
@@ -73,5 +77,14 @@ def main():
     dep_tree = DepTree(recursive=args.recursive, installed_packages=installed_packages)
     for file_or_package_name in args.package:
         dep_tree.add(file_or_package_name)
-
+    for package_name, dependencies in dep_tree.dependencies_by_package.items():
+        print(package_name)
+        print('=' % len(package_name))
+        print('')
+        for other_package, constraints in dependencies.items():
+            constraint_str = ''
+            if constraints:
+                constraint_str = ', ' .join(['%s %s' % x for x in constraints])
+                constraint_str = '(%s)' % constraint_str
+            print('  * %s %s' % (other_package, constraint_str))
     return 0
