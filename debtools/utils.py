@@ -111,7 +111,10 @@ def parse_dpkg(dpkg_string):
         matcher = re.match('^ii\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+.*$', line)
         if not matcher:
             continue
-        installed_packages[matcher.group(1)] = LooseVersion(matcher.group(2))
+
+        package_name, __, __ = matcher.group(1).partition(':')
+        package_version = matcher.group(2)
+        installed_packages[package_name] = LooseVersion(package_version)
     return installed_packages
 
 
