@@ -53,7 +53,7 @@ def import_string(dotted_path):
 def main():
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--config', '-f', action='store', help='Configuration file', default='stdeb.cfg')
-    args_parser.add_argument('--ignore-freeze', '-I', action='store_true', help='Add packages listed in `pip freeze`', default=False)
+    args_parser.add_argument('--ignore-freeze', '-I', action='store_true', help='Do not add packages listed in `pip freeze`', default=False)
     args_parser.add_argument('--allow-unsafe-download', action='store_true', help='Allow unsafe downloads', default=False)
     args_parser.add_argument('--dest-dir', help='Destination dir', default='deb')
 
