@@ -107,7 +107,10 @@ def main():
     dep_tree = DepTree(recursive=args.recursive, ignored_packages=ignored_packages, local_packages=local_packages)
     for file_or_package_name in args.package:
         dep_tree.add(file_or_package_name)
-    for package_name, dependencies in dep_tree.dependencies_by_package.items():
+    package_names = list(dep_tree.dependencies_by_package.keys())
+    package_names.sort()
+    for package_name in package_names:
+        dependencies = dep_tree.dependencies_by_package[package_name]
         print(package_name)
         print('=' * len(package_name))
         print('')

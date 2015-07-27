@@ -14,7 +14,7 @@ Download packages and show the dependencies of a given package:
       * gcc-4.7-base (= 4.7.2-5)
       * libc6 (>= 2.2.5)
 
-Ok, nothing new from the standard `dpkg -I libgcc1_4.7.2-5_amd64.deb` command. You can provide a package name or a .deb filename:
+Ok, nothing new from the standard `dpkg -I libgcc1_4.7.2-5_amd64.deb` command, but you can provide either a package name or a .deb filename:
 
     $ deb-dep-tree libgcc1 
     Réception de : 1 Téléchargement de libgcc1 1:4.7.2-5 [43,1 kB]
@@ -41,6 +41,10 @@ The package will be downloaded in the current directory. You can recursively ret
     
       * libc6 (>= 2.3.6-2)
     
+    libc-bin
+    ========
+    
+    
     gcc-4.7-base
     ============
     
@@ -50,6 +54,10 @@ The package will be downloaded in the current directory. You can recursively ret
     
       * libc-bin (= 2.13-38+deb7u8)
       * libgcc1 
+      
+    $ ls
+    gcc-4.7-base_4.7.2-5_amd64.deb  libc6_2.13-38+deb7u8_amd64.deb  libc-bin_2.13-38+deb7u8_amd64.deb  libgcc1_4.7.2-5_amd64.deb  multiarch-support_2.13-38+deb7u8_amd64.deb
+
 
 
 Sometimes, there is a choice between several possibilities for a given dependency. These dependencies are ignored (since we cannot select one).
