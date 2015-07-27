@@ -28,7 +28,7 @@ with codecs.open(os.path.join(os.path.dirname(__file__), 'README.md'), encoding=
     long_description = fd.read()
 
 entry_points = {'console_scripts': ['deb-dep-tree = debtools.debdeptree:main',
-                                    'multiple-deb = debtools.multideb:main']}
+                                    'multideb = debtools.multideb:main']}
 
 setup(
     name='debtools',

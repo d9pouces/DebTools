@@ -142,6 +142,10 @@ Here is the list of actions:
   * run the `post_source` function (if defined),
   * create the package with `dpkg-buildpackage`.
 
+Usage:
+
+    multideb
+
 Here is a sample `stdeb.cfg` file:
 
     [multideb-packages]
