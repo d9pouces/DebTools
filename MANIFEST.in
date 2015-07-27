@@ -1,0 +1,3 @@
+recursive-include debtools *
+exclude .git .svn
+include LICENSE README.md
