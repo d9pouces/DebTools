@@ -57,22 +57,35 @@ def parse_control_data(control_data, continue_line=' ', split=': ', skip_after_b
     return result_data
 
 
-def parse_deps(dep_string):
+def parse_deps(dep_string, local_packages=None):
     """Parse the dependencies of a `.deb` package and return a dict, whose keys are packages names and values are a list of version constraints
 
      >>> parse_deps("python (>= 2.7), python (<< 2.8), python-stdeb, python-backports.lzma")
      {u'python': [(u'>=', LooseVersion ('2.7')), (u'<<', LooseVersion ('2.8'))], u'python-stdeb': [], u'python-backports.lzma': []}
 
+    Choices between two packages are ignored.
+
     :param dep_string:
     :type dep_string: :class:`str`
+    :param local_packages: dict of [package_name, package_version], used when there is a choice between packages
+    :type local_packages: :class:`dict`
     :return: dict, whose keys are packages names and values are a list of version constraints
     :rtype: :class:`dict`
     """
     deps = {}
-
     for dep_info in dep_string.split(','):
         dep_info = dep_info.strip()
-        matcher = re.match('^(.*)\s+\((>=|<<|>>|==|>=)\s+(.*)\)$', dep_info)
+        if '|' in dep_info and local_packages is None:
+            continue
+        elif '|' in dep_info:
+            for sub_dep_info in dep_info.split('|'):
+                sub_dep_info, __, __ = sub_dep_info.partition('(')
+                if sub_dep_info.strip() in local_packages:
+                    dep_info = sub_dep_info.strip()
+                    break
+            else:
+                continue
+        matcher = re.match('^(.*)\s+\((>=|<<|>>|==|>=|=)\s+(.*)\)$', dep_info)
         if matcher:
             package_name = matcher.group(1)
             constraint_type = matcher.group(2)
