@@ -118,17 +118,19 @@ You can also:
   * define the packages to create in a configuration file,
   * specify options for any of these packages,
   * run Python commands after archive expansion and between the creation of Debian source and the creation of the Debian package.
-  
-All these options are defined in a `stdeb.cfg` configuration file.
-In the [multideb-packages] section of `stdeb.cfg`, you can define extra packages to create: option name is the name of the package, option value is the required version.
 
+To create Debian packages for all Python packages currently installed, use the following command:
+  
+    multideb --freeze
+  
+All options must be defined in a `stdeb.cfg` configuration file. 
+In the [multideb-packages] section of `stdeb.cfg`, you can define extra packages to create: option name is the name of the package, option value is the required version.
 In the [multideb] section of `stdeb.cfg`, you can exclude some packages from .deb creation:
  
     [multideb]
     exclude = celery
         django
         gunicorn
-
 
 You can define specific options for a given package. In addition of standard `stdeb` options, you can also define `pre_source` and `post_source` options.
 Values must be an importable Python function, which will be called with the following arguments `my_callable(package_name, package_version, deb_src_dir)`.

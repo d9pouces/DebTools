@@ -8,6 +8,7 @@ import argparse
 import codecs
 import os
 import subprocess
+import sys
 from debtools.utils import get_control_data, parse_deps, parse_dpkg, check_version_constraint
 
 __author__ = 'Matthieu Gallet'
@@ -82,7 +83,7 @@ def main():
     """
     parser = argparse.ArgumentParser(description='Sample command line interface')
     parser.add_argument('--dir', default='.', help='Download directory')
-    parser.add_argument('package', action='append', default=[], help='Filename (must ends by .deb) or package name to analyze')
+    parser.add_argument('package', nargs='+', default=None, help='Filename (must ends by .deb) or package name to analyze')
     parser.add_argument('-r', '--recursive', action='store_true', default=False, help='Recursive download')
     parser.add_argument('-i', '--ignored', default=None, help='file with the result of `dpkg -l`')
     parser.add_argument('-l', '--local', default=False, action='store_true', help='use locally installed packages for solving dependencies with choices')

@@ -7,6 +7,7 @@ You should use a `stdeb.cfg` configuration file
 """
 from __future__ import unicode_literals, print_function
 import argparse
+import codecs
 import glob
 from importlib import import_module
 import os
@@ -21,6 +22,7 @@ from pip._vendor.pkg_resources import Distribution
 from stdeb.downloader import get_source_tarball
 # noinspection PyPackageRequirements
 from stdeb.util import check_call, expand_sdist_file
+import sys
 
 try:
     import configparser
@@ -53,7 +55,8 @@ def import_string(dotted_path):
 def main():
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--config', '-f', action='store', help='Configuration file', default='stdeb.cfg')
-    args_parser.add_argument('--ignore-freeze', '-I', action='store_true', help='Do not add packages listed in `pip freeze`', default=False)
+    args_parser.add_argument('--freeze', '-r', action='store_true', help='add packages listed in `pip freeze`', default=False)
+    args_parser.add_argument('--only', action='append', help='only these packages', default=[])
     args_parser.add_argument('--allow-unsafe-download', action='store_true', help='Allow unsafe downloads', default=False)
     args_parser.add_argument('--dest-dir', help='Destination dir', default='deb')
 
@@ -61,16 +64,17 @@ def main():
     config_parser = configparser.ConfigParser()
     config_parser.read([args.config])
     allow_unsafe_download = args.allow_unsafe_download
-    ignore_freeze = args.ignore_freeze
+    add_freeze = args.freeze
     destination_dir = args.dest_dir
+    only_packages = args.only
 
-    distribution_list = {}
+    packages_to_create = {}
 
-    if not ignore_freeze:
+    if add_freeze:
         installed_distributions = get_installed_distributions(local_only=True)
         for distrib in installed_distributions:
             assert isinstance(distrib, Distribution)
-            distribution_list[distrib.project_name] = distrib.version
+            packages_to_create[distrib.project_name] = distrib.version
 
     if config_parser.has_option('multideb', 'exclude'):
         excluded_packages = {x for x in config_parser.get('multideb', 'exclude').splitlines() if x.strip()}
@@ -81,7 +85,7 @@ def main():
         for option_name in config_parser.options('multideb-packages'):
             option_value = config_parser.get('multideb-packages', option_name)
             package_name, sep, package_version = option_value.partition('==')
-            distribution_list[package_name] = package_version
+            packages_to_create[package_name] = package_version
 
     deb_dest_dir = os.path.abspath(destination_dir)
     if not os.path.isdir(deb_dest_dir):
@@ -92,9 +96,13 @@ def main():
             print(package_name)
     excluded_packages = {normalize_package_name(x) for x in excluded_packages}
 
+    if only_packages:
+        packages_to_create = {package_name: package_version for (package_name, package_version) in packages_to_create.items()
+                              if package_name in set(only_packages)}
+
     # create a temp dir and do the work
     cwd = os.getcwd()
-    for package_name, package_version in distribution_list.items():
+    for package_name, package_version in packages_to_create.items():
         if normalize_package_name(package_name) in excluded_packages:
             continue
         temp_dir = mkdtemp()
@@ -129,15 +137,18 @@ def prepare_package(package_name, package_version, deb_dest_dir, multideb_config
     run_hook(package_name, package_version, 'pre_source', None, multideb_config_parser)
 
     # config file for each package?
-    if multideb_config_parser.has_section(package_name):
-        new_config_parser = configparser.ConfigParser()
-        new_config_parser.read(['stdeb.cfg'])
-        # new_config_parser.add_section('DEFAULT')
-        for option_name in multideb_config_parser.options(package_name):
-            option_value = multideb_config_parser.get(package_name, option_name)
-            new_config_parser.set('DEFAULT', option_name, option_value)
-        with open('stdeb.cfg', 'wb') as fd:
-            new_config_parser.write(fd)
+    new_config_parser = configparser.ConfigParser()
+    new_config_parser.read(['stdeb.cfg'])
+    section_names = (package_name, )
+    if sys.version_info[0] == 3:
+        section_names = (package_name, package_name + '-python3')
+    for section_name in section_names:
+        if multideb_config_parser.has_section(section_name):
+            for option_name in multideb_config_parser.options(section_name):
+                option_value = multideb_config_parser.get(section_name, option_name)
+                new_config_parser.set('DEFAULT', option_name, option_value)
+    with codecs.open('stdeb.cfg', 'w', encoding='utf-8') as fd:
+        new_config_parser.write(fd)
     check_call(['python', 'setup.py', '--command-packages', 'stdeb.command', 'sdist_dsc'])
 
     # find the actual debian source dir
