@@ -160,7 +160,6 @@ def prepare_package(package_name, package_version, deb_dest_dir, multideb_config
     run_hook(package_name, package_version, 'post_source', debian_source_dir, multideb_config_parser)
     # build .deb from the source
     check_call(['dpkg-buildpackage', '-rfakeroot', '-uc', '-b'], cwd=debian_source_dir)
-
     # move the .deb to destination dir
     packages = glob.glob('deb_dist/*.deb')
     if not packages:
@@ -181,9 +180,3 @@ def remove_tests_dir(package_name, package_version, deb_src_dir):
     """ Post source hook for removing `tests` dir """
     if os.path.isdir('tests'):
         shutil.rmtree('tests')
-
-
-# noinspection PyUnusedLocal
-def fix_celery(package_name, package_version, deb_src_dir):
-    basename = 'debian/python-celery/usr/share/doc/python-celery/changelog'
-    shutil.copy(os.path.join(deb_src_dir, basename + '.Debian'), os.path.join(deb_src_dir, basename))
