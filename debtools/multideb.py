@@ -55,17 +55,18 @@ def import_string(dotted_path):
 
 def main():
     args_parser = argparse.ArgumentParser()
-    args_parser.add_argument('--config', '-f', action='store', help='Configuration file', default='stdeb.cfg')
+    args_parser.add_argument('--config', '-f', action='store', help='Base configuration file', default='stdeb.cfg')
     args_parser.add_argument('--freeze', '-r', action='store_true', help='add packages listed in `pip freeze`', default=False)
     args_parser.add_argument('--only', action='append', help='only these packages', default=[])
     args_parser.add_argument('--allow-unsafe-download', action='store_true', help='Allow unsafe downloads', default=False)
     args_parser.add_argument('--dest-dir', help='Destination dir', default='deb')
+    args_parser.add_argument('-x', '--extra-cfg-file', default=[], action='append', help='Extra configuration file')
     args_parser.add_argument('--verbose', '-v', help='verbose mode', default=False, action='store_true')
     args_parser.add_argument('--keep-temp', '-k', help='keep temporary files', default=False, action='store_true')
 
     args = args_parser.parse_args()
     config_parser = configparser.ConfigParser()
-    config_parser.read([args.config])
+    config_parser.read(args.extra_cfg_file + [args.config])
     allow_unsafe_download = args.allow_unsafe_download
     add_freeze = args.freeze
     destination_dir = args.dest_dir
