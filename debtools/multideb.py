@@ -143,6 +143,7 @@ def prepare_package(package_name, package_version, deb_dest_dir, multideb_config
     if len(directories) != 1:
         raise ValueError('Require a single directory in %s' % os.getcwd())
     os.chdir(directories[0])
+    subprocess.check_output("rm -rf `find * | grep \.pyc$`", shell=True)
     run_hook(package_name, package_version, 'pre_source', None, multideb_config_parser)
 
     # config file for each package?
