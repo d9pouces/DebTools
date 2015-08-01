@@ -12,6 +12,7 @@ import glob
 from importlib import import_module
 import os
 import shutil
+import subprocess
 from tempfile import mkdtemp
 
 # noinspection PyPackageRequirements
@@ -59,6 +60,8 @@ def main():
     args_parser.add_argument('--only', action='append', help='only these packages', default=[])
     args_parser.add_argument('--allow-unsafe-download', action='store_true', help='Allow unsafe downloads', default=False)
     args_parser.add_argument('--dest-dir', help='Destination dir', default='deb')
+    args_parser.add_argument('--verbose', '-v', help='verbose mode', default=False, action='store_true')
+    args_parser.add_argument('--keep-temp', '-k', help='keep temporary files', default=False, action='store_true')
 
     args = args_parser.parse_args()
     config_parser = configparser.ConfigParser()
@@ -67,6 +70,8 @@ def main():
     add_freeze = args.freeze
     destination_dir = args.dest_dir
     only_packages = args.only
+    verbose = args.verbose
+    keep_temp = args.keep_temp
 
     packages_to_create = {}
 
@@ -107,12 +112,15 @@ def main():
             continue
         temp_dir = mkdtemp()
         os.chdir(temp_dir)
-        prepare_package(package_name, package_version, deb_dest_dir, config_parser, allow_unsafe_download)
-        shutil.rmtree(temp_dir)
+        prepare_package(package_name, package_version, deb_dest_dir, config_parser, allow_unsafe_download, verbose=verbose)
+        if not keep_temp:
+            shutil.rmtree(temp_dir)
+        else:
+            print('%s-%s: %s' % (package_name, package_version, temp_dir))
     os.chdir(cwd)
 
 
-def prepare_package(package_name, package_version, deb_dest_dir, multideb_config_parser, allow_unsafe_download):
+def prepare_package(package_name, package_version, deb_dest_dir, multideb_config_parser, allow_unsafe_download, verbose=True):
     """
     :param package_name: name of the package to prepare
     :type package_name: :class:`str`
@@ -149,7 +157,9 @@ def prepare_package(package_name, package_version, deb_dest_dir, multideb_config
                 new_config_parser.set('DEFAULT', option_name, option_value)
     with codecs.open('stdeb.cfg', 'w', encoding='utf-8') as fd:
         new_config_parser.write(fd)
-    check_call(['python', 'setup.py', '--command-packages', 'stdeb.command', 'sdist_dsc'])
+    call_kwargs = {} if verbose else {'stdout': subprocess.PIPE, 'stderr': subprocess.PIPE}
+    print('preparing Debian source')
+    check_call(['python', 'setup.py', '--command-packages', 'stdeb.command', 'sdist_dsc'], **call_kwargs)
 
     # find the actual debian source dir
     directories = [x for x in os.listdir('deb_dist') if x != 'tmp_py2dsc' and os.path.isdir(os.path.join('deb_dist', x))]
@@ -159,11 +169,13 @@ def prepare_package(package_name, package_version, deb_dest_dir, multideb_config
     # check if we have a post-source to execute
     run_hook(package_name, package_version, 'post_source', debian_source_dir, multideb_config_parser)
     # build .deb from the source
-    check_call(['dpkg-buildpackage', '-rfakeroot', '-uc', '-b'], cwd=debian_source_dir)
+    print('creating package')
+    check_call(['dpkg-buildpackage', '-rfakeroot', '-uc', '-b'], cwd=debian_source_dir, **call_kwargs)
     # move the .deb to destination dir
     packages = glob.glob('deb_dist/*.deb')
     if not packages:
         raise ValueError('Unable to create %s-%s' % (package_name, package_version))
+    print('moving %s' % os.path.basename(packages[0]))
     os.rename(packages[0], os.path.join(deb_dest_dir, os.path.basename(packages[0])))
 
 
