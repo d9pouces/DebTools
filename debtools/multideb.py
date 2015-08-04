@@ -82,8 +82,9 @@ def main():
             assert isinstance(distrib, Distribution)
             packages_to_create[distrib.project_name] = distrib.version
 
-    if config_parser.has_option('multideb', 'exclude'):
-        excluded_packages = {x for x in config_parser.get('multideb', 'exclude').splitlines() if x.strip()}
+    exclude_option = 'exclude' if sys.version_info[0] == 2 else 'exclude3'
+    if config_parser.has_option('multideb', exclude_option):
+        excluded_packages = {x for x in config_parser.get('multideb', exclude_option).splitlines() if x.strip()}
     else:
         excluded_packages = set()
 
