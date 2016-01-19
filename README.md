@@ -1,6 +1,18 @@
 DebTools
 ========
 
+Collection of two utilities for dealing with Debian packages:
+
+  * `deb-dep-tree` computes all dependencies of a package and download them,
+  * `multideb` generate several Debian packages at once from Python packages.
+
+installation
+------------
+
+The simplest way is to use pip, like all Python packages.
+
+    pip install debtools
+
 `deb-dep-tree`
 --------------
 
