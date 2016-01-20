@@ -6,7 +6,7 @@ Collection of two utilities for dealing with Debian packages:
   * `deb-dep-tree` computes all dependencies of a package and download them,
   * `multideb` generate several Debian packages at once from Python packages.
 
-Documentation is available [here](http://debtools.readthedocs.org/en/latest/).
+Documentation is available [here](https://debtools.readthedocs.org/en/latest/).
 
 installation
 ------------
