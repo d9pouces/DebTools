@@ -9,13 +9,13 @@ Welcome to DebTools's documentation!
 Overview:
 
 :doc:`installation`
-    Instruction on how to get the distribution
+    Basic instructions
 
 :doc:`debdeptree`
-    Start here for a quick overview
+    display and download all dependencies of a Debian package
 
 :doc:`multideb`
-    The complete API documentation, organized by modules
+    generate all required packages for a Python module
 
 
 Full table of contents
