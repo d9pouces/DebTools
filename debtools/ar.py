@@ -5,7 +5,6 @@ from tarfile import InvalidHeaderError
 __author__ = 'Matthieu Gallet'
 
 
-
 class ArInfo(object):
     def __init__(self, name=''):
         self.name = name

@@ -17,7 +17,8 @@ except ImportError:
     requirements.append('backports.lzma')
 
 
-# avoid a from debtools import __version__ as version (that compiles debtools.__init__ and is not compatible with bdist_deb)
+# avoid a from debtools import __version__ as version (that compiles debtools.__init__
+# and is not compatible with bdist_deb)
 version = None
 for line in codecs.open(os.path.join('debtools', '__init__.py'), 'r', encoding='utf-8'):
     matcher = re.match(r"""^__version__\s*=\s*['"](.*)['"]\s*$""", line)
