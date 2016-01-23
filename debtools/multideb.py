@@ -112,7 +112,7 @@ def main():
     for package_name, package_version in packages_to_create.items():
         if normalize_package_name(package_name) in excluded_packages:
             continue
-        temp_dir = mkdtemp()
+        temp_dir = mkdtemp(suffix='-multideb')
         os.chdir(temp_dir)
         prepare_package(package_name, package_version, deb_dest_dir, config_parser, allow_unsafe_download, verbose=verbose)
         if not keep_temp:
