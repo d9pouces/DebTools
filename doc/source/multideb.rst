@@ -33,16 +33,32 @@ Here is the list of actions:
 
   * download .tar.gz of the source code,
   * expand this file,
+  * remove all `.pyc` files,
   * run the `pre_source` function (if defined),
   * run `python setup.py sdist_dsc`,
   * run the `post_source` function (if defined),
   * create the package with `dpkg-buildpackage`.
 
-Usage:
+Usage
+-----
 
 .. code-block:: bash
 
     multideb
+
+Callable hooks
+--------------
+
+`pre_source` hook is called just after the expand of the archive and the removal of compiled Python files (`.pyc`).
+The current working dir is changed to this directory (for example, `./setup.py` should exist) and `deb_src_dir` is `None` when this hook is called.
+
+`post_source` hook is called after the `sdist_dsc` command.
+The current working dir is changed to archive directory (for example, `./setup.py` should exist) and `deb_src_dir` is valid when this hook is called.
+It corresponds to the single sub-directory in the directory `deb_dist`.
+
+
+Sample config file
+------------------
 
 Here is a sample `stdeb.cfg` file:
 
