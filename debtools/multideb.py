@@ -64,7 +64,8 @@ def main():
     args_parser.add_argument('--verbose', '-v', help='verbose mode', default=False, action='store_true')
     args_parser.add_argument('--keep-temp', '-k', help='keep temporary files', default=False, action='store_true')
     args_parser.add_argument('--dry', help='show what should be done', default=False, action='store_true')
-    args_parser.add_argument('--exclude', default=[], action='append', help='package to exclude from packaging')
+    args_parser.add_argument('--exclude', default=[], action='append', help='modules to exclude from packaging')
+    args_parser.add_argument('include', default=[], action='append', help='other modules to package')
 
     args = args_parser.parse_args()
     dry = args.dry
@@ -83,13 +84,26 @@ def main():
     verbose = args.verbose
     keep_temp = args.keep_temp
 
+    installed_packages = {}
+    installed_distributions = get_installed_distributions(local_only=True)
+    for distrib in installed_distributions:
+        assert isinstance(distrib, Distribution)
+        installed_packages[normalize_package_name(distrib.project_name)] = distrib.version
+
     packages_to_create = {}
+    for value in args.include:
+        package_name, sep, package_version = value.partition('=')
+        normalized_package_name = normalize_package_name(package_name)
+        if sep != '=' and normalized_package_name not in installed_packages:
+            print('%s not installed: please specify its version (e.g. %s %s=1.0.0)' %
+                  (package_name, sys.argv[0], package_name))
+        elif sep == '=':
+            packages_to_create[normalized_package_name] = package_version
+        else:
+            packages_to_create[normalized_package_name] = installed_packages[normalized_package_name]
 
     if add_freeze:
-        installed_distributions = get_installed_distributions(local_only=True)
-        for distrib in installed_distributions:
-            assert isinstance(distrib, Distribution)
-            packages_to_create[normalize_package_name(distrib.project_name)] = distrib.version
+        packages_to_create.update(installed_packages)
 
     exclude_option = 'exclude' if sys.version_info[0] == 2 else 'exclude3'
     if config_parser.has_option('multideb', exclude_option):
@@ -114,7 +128,8 @@ def main():
     excluded_packages = {normalize_package_name(x) for x in excluded_packages}
 
     if only_packages:
-        packages_to_create = {package_name: package_version for (package_name, package_version) in packages_to_create.items()
+        packages_to_create = {package_name: package_version
+                              for (package_name, package_version) in packages_to_create.items()
                               if package_name in set(only_packages)}
 
     # create a temp dir and do the work
@@ -198,10 +213,10 @@ def prepare_package(package_name, package_version, deb_dest_dir, multideb_config
 
 def run_hook(package_name, package_version, hook_name, debian_source_dir, multideb_config_parser):
     if multideb_config_parser.has_option(package_name, hook_name):
-        post_hook_name = multideb_config_parser.get(package_name, hook_name)
-        print("Using %s as %s hook for %s" % (post_hook_name, hook_name, package_name))
-        post_source_hook = import_string(post_hook_name)
-        post_source_hook(package_name, package_version, debian_source_dir)
+        hook_name = multideb_config_parser.get(package_name, hook_name)
+        print("Using %s as %s hook for %s" % (hook_name, hook_name, package_name))
+        source_hook = import_string(hook_name)
+        source_hook(package_name, package_version, debian_source_dir)
 
 
 # noinspection PyUnusedLocal
