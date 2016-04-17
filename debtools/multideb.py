@@ -85,25 +85,25 @@ def main():
     keep_temp = args.keep_temp
 
     installed_packages = {}
-    normalized_to_names = {}
+    normalized_to_name = {}
     installed_distributions = get_installed_distributions(local_only=True)
     for distrib in installed_distributions:
         assert isinstance(distrib, Distribution)
-        normalized_to_names[normalize_package_name(distrib.project_name)] = distrib.project_name
+        normalized_to_name[normalize_package_name(distrib.project_name)] = distrib.project_name
         installed_packages[distrib.project_name] = distrib.version
 
     packages_to_create = {}
     for value in args.include:
         package_name, sep, package_version = value.partition('=')
         normalized_package_name = normalize_package_name(package_name)
-        if sep != '=' and normalized_package_name not in normalized_to_names:
+        if sep != '=' and normalized_package_name not in normalized_to_name:
             print('%s not installed: please specify its version (e.g. %s %s=1.0.0)' %
                   (package_name, sys.argv[0], package_name))
         elif sep == '=':
             packages_to_create[package_name] = package_version
         else:
-            package_name = normalized_to_names[normalized_package_name]
-            packages_to_create[normalized_package_name] = installed_packages[package_name]
+            package_name = normalized_to_name[normalized_package_name]
+            packages_to_create[package_name] = installed_packages[package_name]
 
     if add_freeze:
         packages_to_create.update(installed_packages)
