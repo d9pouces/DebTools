@@ -193,7 +193,7 @@ def prepare_package(package_name, package_version, deb_dest_dir, multideb_config
     if not packages:
         raise ValueError('Unable to create %s-%s' % (package_name, package_version))
     print('moving %s' % os.path.basename(packages[0]))
-    os.rename(packages[0], os.path.join(deb_dest_dir, os.path.basename(packages[0])))
+    shutil.move(packages[0], os.path.join(deb_dest_dir, os.path.basename(packages[0])))
 
 
 def run_hook(package_name, package_version, hook_name, debian_source_dir, multideb_config_parser):
