@@ -63,10 +63,19 @@ def main():
     args_parser.add_argument('-x', '--extra-cfg-file', default=[], action='append', help='Extra configuration file')
     args_parser.add_argument('--verbose', '-v', help='verbose mode', default=False, action='store_true')
     args_parser.add_argument('--keep-temp', '-k', help='keep temporary files', default=False, action='store_true')
+    args_parser.add_argument('--dry', help='show what should be done', default=False, action='store_true')
+    args_parser.add_argument('--exclude', default=[], action='append', help='package to exclude from packaging')
 
     args = args_parser.parse_args()
+    dry = args.dry
     config_parser = configparser.ConfigParser()
-    config_parser.read(args.extra_cfg_file + [args.config])
+    all_config_files = args.extra_cfg_file + [args.config]
+    for filename in all_config_files:
+        if os.path.isfile(filename):
+            print('config. file %s added to configuration' % filename)
+        else:
+            print('config. file %s does not exist' % filename)
+    config_parser.read(all_config_files)
     allow_unsafe_download = args.allow_unsafe_download
     add_freeze = args.freeze
     destination_dir = args.dest_dir
@@ -80,13 +89,14 @@ def main():
         installed_distributions = get_installed_distributions(local_only=True)
         for distrib in installed_distributions:
             assert isinstance(distrib, Distribution)
-            packages_to_create[distrib.project_name] = distrib.version
+            packages_to_create[normalize_package_name(distrib.project_name)] = distrib.version
 
     exclude_option = 'exclude' if sys.version_info[0] == 2 else 'exclude3'
     if config_parser.has_option('multideb', exclude_option):
         excluded_packages = {x for x in config_parser.get('multideb', exclude_option).splitlines() if x.strip()}
     else:
         excluded_packages = set()
+    excluded_packages |= {x for x in args.exclude}
 
     if config_parser.has_section('multideb-packages'):
         for option_name in config_parser.options('multideb-packages'):
@@ -111,6 +121,10 @@ def main():
     cwd = os.getcwd()
     for package_name, package_version in packages_to_create.items():
         if normalize_package_name(package_name) in excluded_packages:
+            print('%s is excluded' % package_name)
+            continue
+        print('packaging %s…' % package_name)
+        if dry:
             continue
         temp_dir = mkdtemp(suffix='-multideb')
         os.chdir(temp_dir)
