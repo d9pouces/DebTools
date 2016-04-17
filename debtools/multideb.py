@@ -65,7 +65,7 @@ def main():
     args_parser.add_argument('--keep-temp', '-k', help='keep temporary files', default=False, action='store_true')
     args_parser.add_argument('--dry', help='show what should be done', default=False, action='store_true')
     args_parser.add_argument('--exclude', default=[], action='append', help='modules to exclude from packaging')
-    args_parser.add_argument('include', default=[], action='append', help='other modules to package')
+    args_parser.add_argument('--include', default=[], action='append', help='other modules to package')
 
     args = args_parser.parse_args()
     dry = args.dry
