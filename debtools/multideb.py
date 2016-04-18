@@ -137,7 +137,10 @@ def main():
 
     # create a temp dir and do the work
     cwd = os.getcwd()
-    for package_name, package_version in packages_to_create.items():
+    package_names = [x for x in packages_to_create]
+    package_names.sort()
+    for package_name in package_names:
+        package_version = package_names[package_name]
         if normalize_package_name(package_name) in excluded_packages:
             print('%s is excluded' % package_name)
             continue
