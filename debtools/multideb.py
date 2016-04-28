@@ -140,7 +140,7 @@ def main():
     package_names = [x for x in packages_to_create]
     package_names.sort()
     for package_name in package_names:
-        package_version = package_names[package_name]
+        package_version = packages_to_create[package_name]
         if normalize_package_name(package_name) in excluded_packages:
             print('%s is excluded' % package_name)
             continue
