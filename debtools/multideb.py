@@ -144,7 +144,7 @@ def main():
         if normalize_package_name(package_name) in excluded_packages:
             print('%s is excluded' % package_name)
             continue
-        print('packaging %s…' % package_name)
+        print('packaging %s...' % package_name)
         if dry:
             continue
         temp_dir = mkdtemp(suffix='-multideb')
