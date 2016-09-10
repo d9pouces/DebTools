@@ -24,6 +24,9 @@ __author__ = 'Matthieu Gallet'
 ubuntu_distribs = {'precise', 'precise-updates', 'trusty', 'trusty-updates', 'wily', 'wily-updates', 'xenial',
                    'xenial-updates', 'yakkety'}
 debian_distribs = {'wheezy', 'wheezy-backports', 'jessie', 'jessie-backports', 'stretch', 'sid'}
+default_map = {'ansible': 'ansible', 'Fabric': 'fabric', 'PyYAML': 'python-yaml',
+               'ipython': 'ipython', 'pybtex': 'pybtex', 'pylint': 'pylint',
+               'pytz': 'python-tz', }
 
 
 class EnvironmentBuilder(object):
@@ -36,9 +39,12 @@ class EnvironmentBuilder(object):
     def get_debian_package(self, python_package):
         if python_package in self.package_mapping:
             return self.package_mapping[python_package]
+        debian_name = debianize_name(python_package)
+        if debian_name.startswith('python-'):
+            debian_name = debian_name.partition('-')[2]
         if self.python_version == '3':
-            return 'python3-' + debianize_name(python_package)
-        return 'python-' + debianize_name(python_package)
+            return 'python3-' + debian_name
+        return 'python-' + debian_name
 
     def get_available_package_version_in_url(self, base_url, python_package):
         debian_package = self.get_debian_package(python_package)
@@ -53,10 +59,11 @@ class EnvironmentBuilder(object):
             title = content[start_pos + 4:end_pos].strip()
         else:
             return None
-        matcher = re.match(r'^\w+\s*:[^(]*\((\d:|)(.*)-.*\)\s*$', title)
+        title = title.replace(' ', ' ').partition(' [')[0]
+        matcher = re.match(r'^\w+\s*:[^(]*\((\d:|)(.*)-.*\).*$', title)
         if not matcher:
             return None
-        version_info = matcher.groups()[1]
+        version_info = matcher.groups()[1].partition('+')[0]
         return version_info
 
     def get_best_available_package_version(self, python_package, descending=True):
@@ -85,6 +92,9 @@ def main():
                         help='"wheezy", "xenial-update", other distrib name or any URL '
                              'like https://packages.debian.org/stretch/',
                         default=[], action='append')
+    parser.add_argument('-M', '--defaultmap', help='Use name mapping for well-known packages', action='store_true',
+                        default=False)
+
     parser.add_argument('-m', '--mapfile',
                         help='mapping file between Python package names and Debian ones:'
                              ' each line is like "python-package-name=debian-package-name".'
@@ -109,6 +119,8 @@ def main():
             print('Known default values: %s, %s' % (', '.join(ubuntu_distribs), ', '.join(debian_distribs)))
 
     package_mapping = {}
+    if args.defaultmap:
+        package_mapping.update(default_map)
     if args.mapfile:
         with codecs.open(args.mapfile, 'r', encoding='utf-8') as fd:
             for line in fd:
