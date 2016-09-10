@@ -5,6 +5,7 @@ Collection of two utilities for dealing with Debian packages:
 
   * `deb-dep-tree` computes all dependencies of a package and download them,
   * `multideb` generate several Debian packages at once from Python packages.
+  * `aptenv` create a virtualenv using only package versions that are available in the official Ubuntu/Debian repositories
 
 Documentation is available [here](https://debtools.readthedocs.org/en/latest/).
 

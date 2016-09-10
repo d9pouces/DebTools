@@ -8,7 +8,7 @@ import os.path
 import re
 
 from setuptools import setup, find_packages
-requirements = ['stdeb>=0.8.5', ]
+requirements = ['stdeb>=0.8.5', 'pip', ]
 
 try:
     import lzma
@@ -29,7 +29,8 @@ with codecs.open(os.path.join(os.path.dirname(__file__), 'README.md'), encoding=
     long_description = fd.read()
 
 entry_points = {'console_scripts': ['deb-dep-tree = debtools.debdeptree:main',
-                                    'multideb = debtools.multideb:main']}
+                                    'multideb = debtools.multideb:main',
+                                    'aptenv = debtools.aptenv:main', ]}
 
 setup(
     name='debtools',
