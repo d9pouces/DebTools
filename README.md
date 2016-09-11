@@ -4,8 +4,8 @@ DebTools
 Collection of two utilities for dealing with Debian packages:
 
   * `deb-dep-tree` computes all dependencies of a package and download them,
-  * `multideb` generate several Debian packages at once from Python packages.
-  * `aptenv` create a virtualenv using only package versions that are available in the official Ubuntu/Debian repositories
+  * `multideb` generates several Debian packages at once from Python packages.
+  * `aptenv` creates a virtualenv using only package versions that are available in the official Ubuntu/Debian repositories
 
 Documentation is available [here](https://debtools.readthedocs.org/en/latest/).
 
@@ -15,10 +15,46 @@ installation
 The simplest way is to use pip, like all Python packages.
 
     pip install debtools
+    
+`aptenv`
+--------
+
+When your application is meant to be deployed using the official Ubuntu or Debian packages (like `python-django`).
+`aptenv` takes a list of Python packages (a standard requirements files, like the one produced by the `pip freeze command`) or the list of currently installed packages and fetch the list of available versions in the Ubuntu or Debian mirrors.
+  
+    $ aptenv -u xenial -u xenial-updates --python 3 -r requirements.txt
+
+By default, the debianized name of a Python package starts by `python-` or `python3-`. Some packages have a specific name.
+For example, the debian name of `ansible` is `ansible`.
+You can specify a file with all your exceptions, and the mapping for a few well-known Python packages is provided, you can use it with `-M`. You can also use this system for excluding some packages:
+
+    $ echo "PyYAML==3.12" > requirements.txt
+    $ aptenv -u xenial -u xenial-updates --python 3 -r requirements.txt
+    Unable to find any version for PyYAML
+    $ echo "PyYAML=python-yaml" > map
+    $ aptenv -u xenial -u xenial-updates --python 3 -r requirements.txt -m map
+    PyYAML==3.11
+    $ aptenv -u xenial -u xenial-updates --python 3 -r requirements.txt -M
+    PyYAML==3.11
+    $ echo "PyYAML=" > map
+    $ aptenv -u xenial -u xenial-updates --python 3 -r requirements.txt -m map
+    
+The `-P` only prints the Python version:
+
+    $ aptenv -u trusty -u trusty-updates --python 3 -P
+    python3.4
+    $ aptenv -u precise -u precise-updates --python 3 -P
+    python3.2
+    $ aptenv -u trusty -u trusty-updates --python 2 -P
+    python2.7
+
+
 
 `deb-dep-tree`
 --------------
 
+Note: this command requires the `apt-get` binary.
+ 
 Download packages and show the dependencies of a given package:
 
     $ deb-dep-tree libgcc1_4.7.2-5_amd64.deb 
@@ -125,6 +161,8 @@ You can also ignore some dependencies, by providing a file with a list of depend
 
 `multideb`
 ==========
+
+Note: this command requires the `apt-get` binary.
 
 Create several Debian packages at once.
 Fetch the list of installed Python packages in the current virtualenv and package them as .deb packages using the standard `stdeb` tool.

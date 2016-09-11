@@ -27,6 +27,7 @@ Full table of contents
    installation
    debdeptree
    multideb
+   aptenv
 
 Indices and tables
 ==================
